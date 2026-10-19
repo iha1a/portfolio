@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Office Network Design — VLSM Planner</title>
+<meta name="description" content="Small-office network design with VLANs, a VLSM subnet planner and generated Cisco IOS configuration. By Eng. Hala Samer Makkawi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f4f6f9; --card:#fff; --ink:#0f172a; --muted:#5a6578; --line:#e2e7ef; --accent:#2563eb; --soft:#e7efff; --v10:#2563eb; --v20:#16a34a; --v30:#d97706; --v99:#7c3aed; --err:#b91c1c; --code:#0b1220; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0a0e16; --card:#111827; --ink:#e6ebf3; --muted:#9aa5b8; --line:#1f2a3b; --accent:#60a5fa; --soft:#132443; --err:#f87171; --code:#060a12; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15.5px/1.6 Inter, system-ui, sans-serif; overflow-x:hidden; }
+  .wrap { max-width:1140px; margin:0 auto; padding:0 24px; }
+  @media (max-width:600px){ .wrap { padding:0 16px; } }
+  header.wrap { padding-block:48px 24px; }
+  .back { color:var(--muted); text-decoration:none; font-size:14px; }
+  h1 { font-size:clamp(30px,4.6vw,44px); line-height:1.1; margin:14px 0 10px; letter-spacing:-.02em; }
+  h2 { font-size:21px; margin:0 0 12px; }
+  .lead { color:var(--muted); max-width:740px; margin:0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 0; padding:0; list-style:none; }
+  .chips li { background:var(--soft); color:var(--accent); font-weight:600; font-size:13px; padding:4px 11px; border-radius:99px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:22px; }
+  .topo { width:100%; height:auto; display:block; }
+  .topo text { font:12.5px Inter, sans-serif; fill:var(--ink); }
+  .topo .sub { fill:var(--muted); font-size:11.5px; }
+  .topo .node { fill:var(--card); stroke:var(--line); stroke-width:1.5; }
+  .topo .link { stroke:var(--muted); stroke-width:2; }
+  .topo .flow { stroke:var(--accent); stroke-width:2.5; stroke-dasharray:6 10; animation:flow 1.6s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset:-32; } }
+  @media (prefers-reduced-motion: reduce) { .topo .flow { animation:none; } }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:14px; color:var(--muted); }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+  .form { display:grid; grid-template-columns:220px 1fr; gap:18px; }
+  @media (max-width:760px){ .form { grid-template-columns:1fr; } }
+  label { font-weight:600; font-size:14px; display:block; margin-bottom:6px; }
+  input { width:100%; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:10px 12px; font:14.5px "JetBrains Mono", Consolas, monospace; }
+  .rows { display:flex; flex-direction:column; gap:8px; }
+  .r { display:grid; grid-template-columns:1fr 110px 90px 40px; gap:8px; align-items:center; }
+  @media (max-width:500px){ .r { grid-template-columns:1fr 80px 70px 36px; } }
+  .r input { font-family:Inter, sans-serif; }
+  .icon { width:38px; height:38px; border-radius:10px; border:1px solid var(--line); background:none; color:var(--muted); cursor:pointer; font-size:18px; }
+  .bar { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; align-items:center; }
+  .btn { border:0; background:var(--accent); color:#fff; border-radius:10px; padding:10px 18px; font:inherit; font-weight:600; cursor:pointer; }
+  .btn.ghost { background:none; color:var(--ink); border:1px solid var(--line); }
+  .msg { font-size:14px; color:var(--muted); }
+  .msg.err { color:var(--err); font-weight:600; }
+  .out { overflow:auto; border:1px solid var(--line); border-radius:12px; margin-top:16px; }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  th, td { text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { background:var(--soft); font-weight:600; }
+  td.mono { font-family:"JetBrains Mono", Consolas, monospace; font-size:13.5px; }
+  .use { height:8px; border-radius:99px; background:var(--line); min-width:90px; overflow:hidden; }
+  .use span { display:block; height:100%; background:var(--accent); }
+  pre { margin:0; overflow:auto; background:var(--code); color:#dbe5f3; border-radius:12px; padding:16px; font:13px/1.55 "JetBrains Mono", Consolas, monospace; max-height:480px; }
+  .split { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  @media (max-width:860px){ .split { grid-template-columns:1fr; } }
+  .calc-out { margin-top:14px; display:grid; grid-template-columns:auto 1fr; gap:6px 16px; font-size:14.5px; }
+  .calc-out dt { color:var(--muted); } .calc-out dd { margin:0; font-family:"JetBrains Mono", Consolas, monospace; }
+  ul.checks { margin:0; padding-left:18px; color:var(--muted); } ul.checks li { margin:4px 0; }
+  footer.wrap { color:var(--muted); font-size:14px; padding-block:20px 40px; }
+  :focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+</style>
+</head>
+<body>
+<header class="wrap">
+  <a class="back" href="/">← Eng. Hala Samer Makkawi · Portfolio</a>
+  <h1>Office Network Design &amp; VLSM Planner</h1>
+  <p class="lead">A segmented network for a small clinic: separate VLANs for staff, guests, servers and management, an efficient VLSM address plan, and a router configuration generated from that plan. Change the requirements below and everything updates.</p>
+  <ul class="chips"><li>Subnetting / VLSM</li><li>VLANs &amp; 802.1Q</li><li>Router-on-a-stick</li><li>DHCP</li><li>ACLs</li><li>Cisco IOS</li></ul>
+</header>
+
+<main class="wrap">
+  <section class="card" aria-labelledby="topoTitle">
+    <h2 id="topoTitle">Topology</h2>
+    <svg class="topo" viewBox="0 0 1000 360" role="img" aria-label="Internet to firewall to router, a trunk to the core switch, and four VLANs: staff, guest Wi-Fi, servers and management">
+      <line class="link" x1="120" y1="70" x2="290" y2="70"/><line class="link" x1="410" y1="70" x2="560" y2="70"/>
+      <line class="flow" x1="620" y1="100" x2="620" y2="170"/>
+      <line class="link" x1="620" y1="230" x2="160" y2="290"/><line class="link" x1="620" y1="230" x2="440" y2="290"/>
+      <line class="link" x1="620" y1="230" x2="720" y2="290"/><line class="link" x1="620" y1="230" x2="900" y2="290"/>
+      <g transform="translate(30 40)"><rect class="node" width="90" height="60" rx="30"/><text x="45" y="35" text-anchor="middle">Internet</text></g>
+      <g transform="translate(290 40)"><rect class="node" width="120" height="60" rx="10"/><text x="60" y="27" text-anchor="middle">Firewall</text><text class="sub" x="60" y="45" text-anchor="middle">NAT · stateful</text></g>
+      <g transform="translate(560 40)"><rect class="node" width="120" height="60" rx="10"/><text x="60" y="27" text-anchor="middle">Router R1</text><text class="sub" x="60" y="45" text-anchor="middle">Gi0/1 subinterfaces</text></g>
+      <text class="sub" x="632" y="140">802.1Q trunk</text>
+      <g transform="translate(550 170)"><rect class="node" width="140" height="60" rx="10"/><text x="70" y="27" text-anchor="middle">Core switch SW1</text><text class="sub" x="70" y="45" text-anchor="middle">access ports per VLAN</text></g>
+      <g transform="translate(80 290)"><rect class="node" width="160" height="56" rx="10" style="stroke:var(--v10);stroke-width:2"/><text x="80" y="24" text-anchor="middle">VLAN 10 · Staff</text><text class="sub" x="80" y="42" text-anchor="middle">PCs, printers</text></g>
+      <g transform="translate(360 290)"><rect class="node" width="160" height="56" rx="10" style="stroke:var(--v20);stroke-width:2"/><text x="80" y="24" text-anchor="middle">VLAN 20 · Guest Wi-Fi</text><text class="sub" x="80" y="42" text-anchor="middle">internet only</text></g>
+      <g transform="translate(640 290)"><rect class="node" width="160" height="56" rx="10" style="stroke:var(--v30);stroke-width:2"/><text x="80" y="24" text-anchor="middle">VLAN 30 · Servers</text><text class="sub" x="80" y="42" text-anchor="middle">records, backup</text></g>
+      <g transform="translate(820 290)"><rect class="node" width="160" height="56" rx="10" style="stroke:var(--v99);stroke-width:2"/><text x="80" y="24" text-anchor="middle">VLAN 99 · Mgmt</text><text class="sub" x="80" y="42" text-anchor="middle">switch &amp; AP admin</text></g>
+    </svg>
+    <div class="legend"><span><i style="background:var(--v10)"></i>Staff</span><span><i style="background:var(--v20)"></i>Guests (isolated)</span><span><i style="background:var(--v30)"></i>Servers</span><span><i style="background:var(--v99)"></i>Management</span></div>
+  </section>
+
+  <section class="card" aria-labelledby="planTitle">
+    <h2 id="planTitle">VLSM address plan</h2>
+    <form class="form" id="planForm" novalidate>
+      <div>
+        <label for="base">Address block</label>
+        <input id="base" value="192.168.10.0/24" autocomplete="off" spellcheck="false">
+        <p class="msg">Subnets are allocated largest first, so no addresses are wasted between them.</p>
+      </div>
+      <div>
+        <label id="reqLabel">Segments (name, VLAN, hosts needed)</label>
+        <div class="rows" id="rows" aria-labelledby="reqLabel"></div>
+        <div class="bar">
+          <button class="btn ghost" type="button" id="add">+ Add segment</button>
+          <button class="btn" type="submit">Calculate plan</button>
+          <span class="msg" id="planMsg" role="status"></span>
+        </div>
+      </div>
+    </form>
+    <div class="out" id="planOut"></div>
+  </section>
+
+  <section class="card" aria-labelledby="cfgTitle">
+    <h2 id="cfgTitle">Generated router &amp; switch configuration</h2>
+    <p class="msg" style="margin-top:-4px">Built from the plan above: one 802.1Q subinterface and DHCP pool per VLAN, and an ACL that lets guests reach the internet but nothing internal.</p>
+    <div class="bar" style="margin:0 0 12px"><button class="btn ghost" type="button" id="copy">Copy configuration</button><span class="msg" id="copyMsg" role="status"></span></div>
+    <pre id="cfg"></pre>
+  </section>
+
+  <div class="split">
+    <section class="card" aria-labelledby="calcTitle">
+      <h2 id="calcTitle">Subnet calculator</h2>
+      <label for="one">IP address / prefix</label>
+      <input id="one" value="10.20.30.77/27" autocomplete="off" spellcheck="false">
+      <dl class="calc-out" id="oneOut"></dl>
+    </section>
+    <section class="card">
+      <h2>Security &amp; reliability choices</h2>
+      <ul class="checks">
+        <li>Guest Wi-Fi is isolated by ACL: internet yes, staff and servers no.</li>
+        <li>Management on its own VLAN; unused switch ports shut down and placed in a black-hole VLAN.</li>
+        <li>Native VLAN changed from 1 to an unused VLAN on the trunk to block VLAN hopping.</li>
+        <li>DHCP snooping and port security on access ports.</li>
+        <li>SSH only (no Telnet), with local users and an exec timeout.</li>
+        <li>Room to grow: the plan reports spare space left in the block.</li>
+      </ul>
+    </section>
+  </div>
+</main>
+<footer class="wrap">Built by <a href="/">Eng. Hala Samer Makkawi</a></footer>
+<script src="app.js"></script>
+</body>
+</html>

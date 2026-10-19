@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SecureKit — Password, Phishing &amp; Encryption Toolkit</title>
+<meta name="description" content="Client-side security toolkit: password strength and breach check (k-anonymity), phishing URL analyser, and AES-GCM encryption. By Eng. Hala Samer Makkawi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="wrap head">
+  <a class="back" href="/">← Eng. Hala Samer Makkawi · Portfolio</a>
+  <h1><span class="shield" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></span>SecureKit</h1>
+  <p class="lead">Three security tools that run entirely in your browser. Nothing you type is stored or sent anywhere, except a 5-character hash prefix for the breach check, which is how k-anonymity keeps your password private.</p>
+  <ul class="chips"><li>Web Crypto API</li><li>SHA-1 / SHA-256</li><li>AES-256-GCM + PBKDF2</li><li>k-anonymity (HIBP API)</li><li>Phishing heuristics</li></ul>
+  <div class="tabs" role="tablist" aria-label="Tools">
+    <button role="tab" id="t-pw" aria-controls="p-pw" aria-selected="true">Password audit</button>
+    <button role="tab" id="t-url" aria-controls="p-url" aria-selected="false" tabindex="-1">Phishing URL check</button>
+    <button role="tab" id="t-enc" aria-controls="p-enc" aria-selected="false" tabindex="-1">Encrypt text</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel" role="tabpanel" id="p-pw" aria-labelledby="t-pw">
+    <div class="grid">
+      <div class="card">
+        <label for="pw">Password to test</label>
+        <div class="pw-row">
+          <input id="pw" type="password" autocomplete="off" spellcheck="false" placeholder="Type a password">
+          <button class="ghost" id="show" type="button" aria-pressed="false">Show</button>
+        </div>
+        <div class="meter" aria-hidden="true"><span id="bar"></span></div>
+        <p class="verdict" id="verdict" role="status">Start typing to see the analysis.</p>
+        <dl class="stats">
+          <div><dt>Entropy</dt><dd id="ent">—</dd></div>
+          <div><dt>Offline crack time*</dt><dd id="crack">—</dd></div>
+          <div><dt>Character pool</dt><dd id="pool">—</dd></div>
+        </dl>
+        <p class="fine">* Estimate for a fast offline attack at 10 billion guesses per second against an unsalted hash.</p>
+        <button class="primary" id="breach" type="button" disabled>Check known data breaches</button>
+        <p class="note" id="breachOut" role="status"></p>
+      </div>
+      <div class="card">
+        <h2>Findings</h2>
+        <ul class="findings" id="findings"><li class="muted">No password yet.</li></ul>
+        <h2 class="mt">Generate a strong passphrase</h2>
+        <div class="gen"><code id="gen"></code><button class="ghost" id="regen" type="button">New</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" role="tabpanel" id="p-url" aria-labelledby="t-url" hidden>
+    <div class="card">
+      <label for="url">Link to analyse</label>
+      <div class="pw-row">
+        <input id="url" type="text" spellcheck="false" autocomplete="off" placeholder="https://example.com/login">
+        <button class="primary" id="scan" type="button">Analyse</button>
+      </div>
+      <div class="samples">Try: <button type="button" class="link" data-url="http://paypa1-secure.account-verify.top/login?session=8812">a phishing link</button> · <button type="button" class="link" data-url="https://www.coursera.org/verify/SNYC63D2N9SV">a safe link</button> · <button type="button" class="link" data-url="http://192.168.4.20@bit.ly/x9">a disguised link</button></div>
+      <div id="urlOut" class="url-out" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="panel" role="tabpanel" id="p-enc" aria-labelledby="t-enc" hidden>
+    <div class="grid">
+      <div class="card">
+        <label for="plain">Secret message</label>
+        <textarea id="plain" rows="5" placeholder="Write something private"></textarea>
+        <label for="key" class="mt-s">Passphrase</label>
+        <input id="key" type="password" autocomplete="new-password" placeholder="Shared passphrase">
+        <div class="row"><button class="primary" id="encBtn" type="button">Encrypt</button><button class="ghost" id="decBtn" type="button">Decrypt</button></div>
+        <label for="cipher" class="mt-s">Ciphertext (Base64: salt + IV + data)</label>
+        <textarea id="cipher" rows="5" class="mono" placeholder="Encrypted text appears here, or paste one to decrypt"></textarea>
+        <p class="note" id="encMsg" role="status"></p>
+      </div>
+      <div class="card">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li>A random 16-byte <b>salt</b> and the passphrase go through <b>PBKDF2-SHA-256</b> with 310,000 iterations to derive a 256-bit key, which makes guessing passphrases slow.</li>
+          <li>A random 12-byte <b>IV</b> is generated for every message, so the same text never encrypts the same way twice.</li>
+          <li><b>AES-256-GCM</b> encrypts and authenticates the message: if one byte of the ciphertext is changed, decryption fails instead of returning garbage.</li>
+          <li>Salt, IV and ciphertext are packed together and Base64-encoded so they can be pasted anywhere.</li>
+        </ol>
+        <h2 class="mt">SHA-256 fingerprint</h2>
+        <p class="muted small">Hash of the secret message, updated as you type:</p>
+        <code class="hash" id="sha">—</code>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="wrap foot">Built by <a href="/">Eng. Hala Samer Makkawi</a> · All processing happens on your device.</footer>
+<script src="app.js"></script>
+</body>
+</html>

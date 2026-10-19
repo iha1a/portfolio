@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review Insights AI — On-device Sentiment Analysis</title>
+<meta name="description" content="A transformer model running in the browser that reads customer reviews, scores sentiment per sentence and groups feedback by topic. By Eng. Hala Samer Makkawi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f6f5fb; --card:#fff; --ink:#151327; --muted:#5f5c76; --line:#e4e2f0; --accent:#6d28d9; --soft:#efe9ff; --pos:#16a34a; --neg:#dc2626; --mid:#a3a0b8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d0c16; --card:#151324; --ink:#ecebf5; --muted:#a19db8; --line:#272440; --accent:#a78bfa; --soft:#221c3d; --pos:#4ade80; --neg:#f87171; --mid:#5f5b78; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15.5px/1.6 Inter, system-ui, sans-serif; overflow-x:hidden; }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 24px; }
+  @media (max-width:600px){ .wrap { padding:0 16px; } }
+  :focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+  header.wrap { padding-block:46px 22px; }
+  .back { color:var(--muted); text-decoration:none; font-size:14px; }
+  h1 { font-size:clamp(30px,4.8vw,46px); line-height:1.1; margin:14px 0 10px; letter-spacing:-.02em; }
+  h1 span { background:linear-gradient(100deg,var(--accent),#ec4899); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h2 { font-size:18px; margin:0 0 12px; }
+  .lead { color:var(--muted); max-width:760px; margin:0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 0; padding:0; list-style:none; }
+  .chips li { background:var(--soft); color:var(--accent); font-weight:600; font-size:13px; padding:4px 11px; border-radius:99px; }
+  .grid { display:grid; grid-template-columns:1fr 1.15fr; gap:20px; align-items:start; }
+  @media (max-width:900px){ .grid { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px; margin-bottom:20px; }
+  label { font-weight:600; font-size:14px; display:block; margin-bottom:6px; }
+  textarea { width:100%; min-height:300px; resize:vertical; border:1px solid var(--line); border-radius:12px; background:var(--bg); color:var(--ink); padding:14px; font:14.5px/1.6 Inter, sans-serif; }
+  .bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+  .btn { border:0; background:var(--accent); color:#fff; border-radius:12px; padding:11px 20px; font:inherit; font-weight:600; cursor:pointer; }
+  .btn:disabled { opacity:.5; cursor:wait; }
+  .btn.ghost { background:none; color:var(--ink); border:1px solid var(--line); }
+  .status { color:var(--muted); font-size:14px; }
+  .progress { height:6px; border-radius:99px; background:var(--line); overflow:hidden; margin-top:10px; }
+  .progress span { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--accent),#ec4899); transition:width .2s; }
+  .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
+  .kpi { background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:14px; }
+  .kpi b { display:block; font-size:26px; font-weight:700; }
+  .kpi span { color:var(--muted); font-size:13px; }
+  .split { display:flex; height:14px; border-radius:99px; overflow:hidden; background:var(--line); margin:4px 0 18px; }
+  .split i { display:block; height:100%; }
+  .aspects { display:flex; flex-direction:column; gap:12px; }
+  .aspect { display:grid; grid-template-columns:110px 1fr 70px; gap:12px; align-items:center; font-size:14.5px; }
+  @media (max-width:480px){ .aspect { grid-template-columns:86px 1fr 56px; } }
+  .track { position:relative; height:10px; border-radius:99px; background:var(--line); }
+  .track::after { content:""; position:absolute; left:50%; top:-4px; bottom:-4px; width:1px; background:var(--muted); }
+  .fill { position:absolute; top:0; bottom:0; border-radius:99px; }
+  .score { text-align:right; font:600 13.5px "JetBrains Mono", monospace; }
+  .list { list-style:none; margin:0; padding:0; max-height:380px; overflow:auto; }
+  .list li { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:14.5px; }
+  .pill { flex:none; font:600 11.5px "JetBrains Mono", monospace; padding:2px 8px; border-radius:6px; height:fit-content; margin-top:2px; }
+  .pill.pos { background:color-mix(in srgb,var(--pos) 15%,transparent); color:var(--pos); }
+  .pill.neg { background:color-mix(in srgb,var(--neg) 15%,transparent); color:var(--neg); }
+  .tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
+  .tags span { font-size:12px; color:var(--muted); border:1px solid var(--line); border-radius:6px; padding:0 6px; }
+  .empty { color:var(--muted); }
+  .how { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  @media (max-width:860px){ .how { grid-template-columns:1fr 1fr; } }
+  @media (max-width:500px){ .how { grid-template-columns:1fr; } }
+  .how div { background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:14px; }
+  .how b { display:block; margin-bottom:4px; }
+  .how p { margin:0; color:var(--muted); font-size:14px; }
+  footer.wrap { color:var(--muted); font-size:14px; padding-block:10px 40px; }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+</style>
+</head>
+<body>
+<header class="wrap">
+  <a class="back" href="/">← Eng. Hala Samer Makkawi · Portfolio</a>
+  <h1>Review Insights <span>AI</span></h1>
+  <p class="lead">Paste customer reviews and a transformer language model, running entirely on your device, scores the sentiment of every sentence and groups the feedback by topic, so a shop owner sees in seconds what customers love and what to fix.</p>
+  <ul class="chips"><li>Transformers.js</li><li>DistilBERT (fine-tuned SST-2)</li><li>ONNX Runtime · WebAssembly</li><li>Aspect-based sentiment</li><li>Web Worker-free, no server</li></ul>
+</header>
+
+<main class="wrap">
+  <div class="grid">
+    <section class="card">
+      <label for="reviews">Customer reviews (one per line)</label>
+      <textarea id="reviews"></textarea>
+      <div class="bar">
+        <button class="btn" id="go" type="button">Analyse with AI</button>
+        <button class="btn ghost" id="sample" type="button">Load sample reviews</button>
+      </div>
+      <p class="status" id="status" role="status">The model (≈ 65 MB) downloads once on first use, then is cached by the browser.</p>
+      <div class="progress" aria-hidden="true"><span id="prog"></span></div>
+    </section>
+
+    <section class="card" aria-live="polite">
+      <h2>Insights</h2>
+      <div id="results"><p class="empty">Run the analysis to see results.</p></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>How it works</h2>
+    <div class="how">
+      <div><b>1. Split</b><p>Each review is split into sentences, because one review often praises one thing and criticises another.</p></div>
+      <div><b>2. Classify</b><p>DistilBERT, a compressed BERT model fine-tuned for sentiment, scores each sentence as positive or negative with a confidence.</p></div>
+      <div><b>3. Detect topics</b><p>A keyword lexicon tags each sentence with aspects such as shade, texture, longevity, packaging, price and delivery.</p></div>
+      <div><b>4. Aggregate</b><p>Scores are averaged per aspect (−100 to +100) and the most confident complaints are surfaced first.</p></div>
+    </div>
+  </section>
+</main>
+<footer class="wrap">Built by <a href="/">Eng. Hala Samer Makkawi</a> · Model: Xenova/distilbert-base-uncased-finetuned-sst-2-english, run with Transformers.js</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>

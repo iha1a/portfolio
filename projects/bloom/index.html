@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bloom &amp; Petal — Flower Shop</title>
+<meta name="description" content="Bloom & Petal: fresh bouquets delivered same day. A responsive flower shop front-end by Eng. Hala Samer Makkawi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#shop">Skip to the shop</a>
+<header class="top">
+  <div class="wrap bar">
+    <a href="#" class="logo" aria-label="Bloom and Petal home">
+      <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true"><g fill="var(--rose)"><circle cx="20" cy="11" r="7"/><circle cx="29" cy="18" r="7"/><circle cx="25" cy="28" r="7"/><circle cx="15" cy="28" r="7"/><circle cx="11" cy="18" r="7"/></g><circle cx="20" cy="20" r="5" fill="var(--sun)"/></svg>
+      Bloom <i>&amp;</i> Petal
+    </a>
+    <nav class="menu" aria-label="Main">
+      <a href="#shop">Shop</a><a href="#how">Delivery</a><a href="#subscribe">Subscriptions</a>
+    </nav>
+    <button class="cart-btn" id="openCart" type="button" aria-haspopup="dialog" aria-controls="cart">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+      <span>Bag</span><b id="count" aria-live="polite">0</b>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kicker">Same-day delivery in the city</p>
+        <h1>Flowers that say it <em>better</em> than words.</h1>
+        <p class="lead">Seasonal bouquets arranged by hand every morning, wrapped in recycled paper and delivered before sunset.</p>
+        <div class="row">
+          <a class="btn dark" href="#shop">Shop bouquets</a>
+          <a class="btn" href="#subscribe">Weekly flowers</a>
+        </div>
+        <ul class="perks">
+          <li><b>4.9</b> from 1,200 reviews</li>
+          <li><b>2 h</b> average delivery</li>
+          <li><b>7 days</b> freshness promise</li>
+        </ul>
+      </div>
+      <div class="hero-art" id="heroArt" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <section id="shop" class="wrap shop">
+    <div class="shop-head">
+      <div>
+        <p class="kicker">This week's collection</p>
+        <h2>Choose a bouquet</h2>
+      </div>
+      <div class="filters" role="group" aria-label="Filter by occasion" id="filters"></div>
+    </div>
+    <div class="tools">
+      <label class="search"><span class="sr">Search bouquets</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Search roses, tulips, peonies…" autocomplete="off">
+      </label>
+      <label class="sort"><span class="sr">Sort</span>
+        <select id="sort"><option value="pop">Most loved</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select>
+      </label>
+    </div>
+    <p id="empty" class="empty" hidden>No bouquets match your search.</p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="how" class="how">
+    <div class="wrap steps">
+      <div class="step"><span>1</span><h3>Pick &amp; personalise</h3><p>Choose a bouquet, a size and write a card message.</p></div>
+      <div class="step"><span>2</span><h3>We arrange by hand</h3><p>Our florists build it fresh the same morning.</p></div>
+      <div class="step"><span>3</span><h3>Delivered with care</h3><p>Tracked delivery in a water-filled box.</p></div>
+    </div>
+  </section>
+
+  <section id="subscribe" class="wrap sub">
+    <div class="sub-card">
+      <div>
+        <h2>Fresh flowers every week</h2>
+        <p>Subscribe and get a seasonal bouquet every Friday. Pause or cancel any time.</p>
+      </div>
+      <form id="subForm" novalidate>
+        <label class="sr" for="email">Email address</label>
+        <input id="email" type="email" placeholder="you@example.com" required autocomplete="email">
+        <button class="btn dark" type="submit">Subscribe</button>
+        <p class="form-msg" id="subMsg" role="status"></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="foot"><div class="wrap">Bloom &amp; Petal — a front-end project by <a href="/">Eng. Hala Samer Makkawi</a>. Demo shop: no real orders are placed.</div></footer>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="cart" id="cart" role="dialog" aria-modal="true" aria-labelledby="cartTitle" hidden>
+  <div class="cart-head">
+    <h2 id="cartTitle">Your bag</h2>
+    <button class="x" id="closeCart" type="button" aria-label="Close bag">&times;</button>
+  </div>
+  <ul class="lines" id="lines"></ul>
+  <p class="empty" id="cartEmpty">Your bag is empty.</p>
+  <div class="cart-foot">
+    <div class="sum"><span>Subtotal</span><b id="subtotal">$0</b></div>
+    <p class="note" id="shipNote"></p>
+    <button class="btn dark wide" id="checkout" type="button">Checkout</button>
+  </div>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>

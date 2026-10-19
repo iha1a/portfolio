@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StockSense — Smart Inventory System</title>
+<meta name="description" content="A smart inventory system that forecasts demand, detects anomalies and calculates when and how much to reorder. By Eng. Hala Samer Makkawi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <a class="back" href="/">← Eng. Hala Samer Makkawi</a>
+    <div class="brand"><span class="logo" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>StockSense</div>
+    <label class="sr" for="filter">Filter products</label>
+    <input id="filter" class="filter" placeholder="Filter products…" autocomplete="off">
+    <ul class="plist" id="plist" role="listbox" aria-label="Products"></ul>
+  </aside>
+
+  <main class="main">
+    <header class="mhead">
+      <div>
+        <p class="eyebrow">Smart inventory system</p>
+        <h1 id="pName">—</h1>
+        <p class="muted" id="pMeta"></p>
+      </div>
+      <span class="badge" id="pStatus"></span>
+    </header>
+
+    <section class="kpis" aria-label="Key figures">
+      <div class="kpi"><span>On hand</span><b id="kStock">—</b><small id="kCover"></small></div>
+      <div class="kpi"><span>Forecast, next 4 weeks</span><b id="kFc">—</b><small id="kTrend"></small></div>
+      <div class="kpi"><span>Reorder point</span><b id="kRop">—</b><small id="kSafety"></small></div>
+      <div class="kpi"><span>Recommended order</span><b id="kEoq">—</b><small id="kWhen"></small></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Weekly demand &amp; forecast</h2>
+        <div class="legend"><span><i class="l-hist"></i>Sales</span><span><i class="l-fc"></i>Forecast</span><span><i class="l-band"></i>95% range</span><span><i class="l-anom"></i>Anomaly</span></div>
+      </div>
+      <svg id="chart" class="chart" viewBox="0 0 800 300" role="img" aria-label="Demand chart"></svg>
+      <p class="muted small" id="modelInfo"></p>
+    </section>
+
+    <div class="cols">
+      <section class="card">
+        <h2>Policy settings</h2>
+        <div class="form">
+          <label for="lead">Supplier lead time <output id="leadOut"></output></label>
+          <input id="lead" type="range" min="1" max="8" value="2">
+          <label for="svc">Service level <output id="svcOut"></output></label>
+          <input id="svc" type="range" min="0" max="3" value="1">
+          <label for="oc">Cost per order ($)</label>
+          <input id="oc" type="number" min="1" value="40">
+          <label for="hc">Holding cost per unit / year ($)</label>
+          <input id="hc" type="number" min="0.1" step="0.1" value="3">
+        </div>
+      </section>
+      <section class="card">
+        <h2>Alerts across all products</h2>
+        <ul class="alerts" id="alerts"></ul>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>How the system decides</h2>
+      <div class="how">
+        <div><b>Forecast</b><p>Holt's double exponential smoothing models level and trend. Its two smoothing factors are tuned automatically per product by grid search on past errors.</p></div>
+        <div><b>Anomalies</b><p>Weeks whose forecast error is more than 2.5 standard deviations from normal are flagged, so a one-off spike doesn't distort planning.</p></div>
+        <div><b>Safety stock</b><p>z × σ × √lead time, where σ is the forecast error and z comes from the chosen service level (90% → 1.28 … 99% → 2.33).</p></div>
+        <div><b>Order size</b><p>Economic order quantity √(2 × annual demand × order cost ÷ holding cost) balances ordering and storage costs.</p></div>
+      </div>
+    </section>
+    <footer class="foot">Built by <a href="/">Eng. Hala Samer Makkawi</a> · Simulated sales data, 26 weeks per product.</footer>
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

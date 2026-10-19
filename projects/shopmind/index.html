@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShopMind — AI-Powered Store</title>
+<meta name="description" content="An online store with AI semantic search, a shopping assistant and smart recommendations, using sentence embeddings that run in the browser. By Eng. Hala Samer Makkawi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap bar">
+    <a class="logo" href="#"><span class="orb" aria-hidden="true"></span>ShopMind</a>
+    <span class="ai-state" id="aiState" role="status"><i></i>AI loading…</span>
+    <button class="cart-btn" id="cartBtn" type="button" aria-haspopup="dialog" aria-controls="cart">Cart <b id="cartCount">0</b></button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">AI shopping, no filters needed</p>
+      <h1>Describe it. <span>We'll find it.</span></h1>
+      <p class="lead">Search in your own words, like "a gift for a runner under $60" or "something to keep coffee hot". An AI model understands meaning, not just keywords.</p>
+      <form class="search" id="searchForm" role="search">
+        <label class="sr" for="q">Describe what you are looking for</label>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg>
+        <input id="q" autocomplete="off" placeholder="Try: comfy shoes for long walks under $80">
+        <button type="submit">Search</button>
+      </form>
+      <div class="ideas" id="ideas"></div>
+    </div>
+  </section>
+
+  <section class="wrap layout">
+    <div>
+      <div class="results-head">
+        <h2 id="resultsTitle">Trending now</h2>
+        <span class="muted" id="resultsInfo"></span>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <aside class="assistant" aria-labelledby="asstTitle">
+      <div class="asst-head"><span class="orb" aria-hidden="true"></span><h2 id="asstTitle">Shopping assistant</h2></div>
+      <div class="chat" id="chat" aria-live="polite"></div>
+      <form class="ask" id="askForm">
+        <label class="sr" for="askInput">Ask the assistant</label>
+        <input id="askInput" autocomplete="off" placeholder="Ask anything…">
+        <button type="submit" aria-label="Send">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </form>
+    </aside>
+  </section>
+
+  <section class="wrap how">
+    <h2>How the AI works</h2>
+    <div class="steps">
+      <div><b>Embeddings</b><p>Every product description is turned into a 384-number vector by the all-MiniLM-L6-v2 sentence-transformer, in your browser.</p></div>
+      <div><b>Semantic search</b><p>Your request becomes a vector too; products are ranked by cosine similarity, so "keep coffee hot" finds a thermos.</p></div>
+      <div><b>Constraint parsing</b><p>Budgets like "under $60" and categories are extracted from the sentence and applied as filters.</p></div>
+      <div><b>Recommendations</b><p>"Similar items" and "complete your cart" use the same vectors to suggest what fits together.</p></div>
+    </div>
+  </section>
+</main>
+<footer class="wrap foot">ShopMind — built by <a href="/">Eng. Hala Samer Makkawi</a>. Demo store; products are fictional.</footer>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="cart" role="dialog" aria-modal="true" aria-labelledby="cartTitle" hidden>
+  <div class="drawer-head"><h2 id="cartTitle">Your cart</h2><button class="x" id="closeCart" type="button" aria-label="Close cart">&times;</button></div>
+  <ul class="lines" id="lines"></ul>
+  <p class="muted pad" id="cartEmpty">Your cart is empty.</p>
+  <div class="pad" id="bundle"></div>
+  <div class="drawer-foot"><div class="sum"><span>Total</span><b id="total">$0</b></div></div>
+</aside>
+
+<div class="modal-wrap" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <button class="x" id="closeModal" type="button" aria-label="Close">&times;</button>
+    <div id="mBody"></div>
+  </div>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
